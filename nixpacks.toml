@@ -1,0 +1,10 @@
+[phases.setup]
+
+[phases.install]
+cmd = "npm install"
+
+[phases.build]
+cmd = "echo 'Build complete'"
+
+[start]
+cmd = "node backend/server.js"

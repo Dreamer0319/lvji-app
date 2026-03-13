@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>律己</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0A0A0A;
+            --bg-secondary: #111111;
+            --bg-card: #181818;
+            --text-primary: #FFFFFF;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --accent-gold: #C9A962;
+            --accent-gold-dim: #8B7640;
+            --border-subtle: #252525;
+            --danger: #E74C3C;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+        .hidden { display: none !important; }
+        
+        .auth-container { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .auth-header { text-align: center; margin-bottom: 40px; }
+        .auth-header h1 { font-family: 'Noto Serif SC', serif; font-size: 48px; font-weight: 700; letter-spacing: 8px; background: linear-gradient(135deg, #FFFFFF 0%, #C9A962 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 16px; }
+        .auth-header .slogan { font-size: 13px; color: var(--text-secondary); letter-spacing: 4px; }
+        .auth-form { width: 100%; max-width: 320px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+        .form-group input { width: 100%; padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; color: var(--text-primary); font-size: 15px; }
+        .form-group input:focus { outline: none; border-color: var(--accent-gold); }
+        .btn { width: 100%; padding: 16px; background: var(--accent-gold); color: var(--bg-primary); border: none; border-radius: 12px; font-size: 15px; font-weight: 500; cursor: pointer; }
+        .btn:disabled { opacity: 0.5; }
+        .btn-secondary { background: transparent; border: 1px solid var(--border-subtle); color: var(--text-secondary); margin-top: 12px; }
+        .auth-switch { text-align: center; margin-top: 24px; font-size: 13px; color: var(--text-muted); }
+        .auth-switch a { color: var(--accent-gold); text-decoration: none; cursor: pointer; }
+        .error-msg { color: var(--danger); font-size: 13px; margin-bottom: 16px; text-align: center; }
+        
+        .app-container { min-height: 100vh; padding-bottom: 80px; }
+        .page { display: none; padding: 20px; }
+        .page.active { display: block; }
+        
+        .home-header { text-align: center; padding: 30px 0; }
+        .date-display { font-size: 12px; color: var(--text-muted); letter-spacing: 2px; margin-bottom: 12px; }
+        .streak-display { display: flex; align-items: baseline; justify-content: center; gap: 6px; }
+        .streak-number { font-family: 'Noto Serif SC', serif; font-size: 64px; font-weight: 700; color: var(--accent-gold); }
+        .streak-label { font-size: 14px; color: var(--text-secondary); }
+        
+        .checkin-card { background: var(--bg-card); border-radius: 16px; padding: 20px; border: 1px solid var(--border-subtle); margin-bottom: 12px; cursor: pointer; position: relative; overflow: hidden; }
+        .checkin-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--text-muted); }
+        .checkin-card.completed::before { background: var(--accent-gold); }
+        .checkin-card.completed { opacity: 0.6; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .card-title { font-size: 15px; font-weight: 500; }
+        .card-category { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+        .card-status { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--text-muted); display: flex; align-items: center; justify-content: center; }
+        .checkin-card.completed .card-status { background: var(--accent-gold); border-color: var(--accent-gold); }
+        .checkmark { color: var(--bg-primary); font-size: 14px; font-weight: bold; }
+        .card-target { font-size: 24px; font-weight: 300; }
+        .card-target span { font-size: 13px; color: var(--text-secondary); }
+        
+        .progress-section { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-subtle); }
+        .progress-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .progress-label { font-size: 11px; color: var(--text-muted); }
+        .progress-value { font-size: 11px; color: var(--text-secondary); }
+        .progress-bar { height: 4px; background: var(--bg-secondary); border-radius: 2px; margin-bottom: 16px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-gold-dim), var(--accent-gold)); border-radius: 2px; transition: width 0.5s; }
+        
+        .stats-header { text-align: center; padding: 20px 0; }
+        .stats-title { font-size: 16px; color: var(--text-secondary); letter-spacing: 2px; }
+        .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin: 20px 0; }
+        .day-cell { aspect-ratio: 1; border-radius: 10px; background: var(--bg-card); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; }
+        .day-cell .day-name { color: var(--text-muted); font-size: 10px; }
+        .day-cell.done { background: var(--accent-gold); }
+        .day-cell.done .day-name { color: var(--bg-primary); }
+        .day-cell.partial { background: var(--accent-gold-dim); }
+        .day-cell.partial .day-name { color: var(--bg-primary); }
+        
+        .stat-card { background: var(--bg-card); border-radius: 16px; padding: 20px; margin-bottom: 12px; border: 1px solid var(--border-subtle); }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; }
+        .stat-label { font-size: 13px; color: var(--text-secondary); }
+        .stat-value { font-family: 'Noto Serif SC', serif; font-size: 28px; color: var(--accent-gold); }
+        
+        .profile-header { text-align: center; padding: 30px 0; }
+        .profile-avatar { width: 72px; height: 72px; background: linear-gradient(135deg, var(--accent-gold-dim), var(--accent-gold)); border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-family: 'Noto Serif SC', serif; font-size: 28px; color: var(--bg-primary); }
+        .profile-name { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+        .profile-level { font-size: 12px; color: var(--text-muted); }
+        
+        .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid var(--border-subtle); cursor: pointer; }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-label { font-size: 14px; color: var(--text-secondary); }
+        .menu-arrow { color: var(--text-muted); font-size: 14px; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--bg-secondary); border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 11px; cursor: pointer; }
+        .nav-item.active { color: var(--accent-gold); }
+        .nav-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--bg-card); color: var(--text-primary); padding: 12px 24px; border-radius: 12px; border: 1px solid var(--border-subtle); font-size: 14px; z-index: 1000; opacity: 0; transition: opacity 0.3s; }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <!-- 登录页 -->
+    <div id="authPage" class="auth-container">
+        <div class="auth-header">
+            <h1>律己</h1>
+            <div class="slogan">自律，是男人最顶级的修行</div>
+        </div>
+        <div class="auth-form">
+            <div id="authError" class="error-msg hidden"></div>
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" id="authUsername" placeholder="请输入用户名">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="authPassword" placeholder="请输入密码">
+            </div>
+            <div class="form-group hidden" id="nicknameGroup">
+                <label>昵称（可选）</label>
+                <input type="text" id="authNickname" placeholder="请输入昵称">
+            </div>
+            <button class="btn" id="authBtn" onclick="handleAuth()">登录</button>
+            <button class="btn btn-secondary" onclick="toggleAuthMode()">注册账号</button>
+        </div>
+    </div>
+
+    <!-- 主应用 -->
+    <div id="appContainer" class="app-container hidden">
+        <!-- 首页 -->
+        <div id="homePage" class="page active">
+            <div class="home-header">
+                <div class="date-display" id="dateDisplay"></div>
+                <div class="streak-display">
+                    <span class="streak-number" id="streakNumber">0</span>
+                    <span class="streak-label">天连续</span>
+                </div>
+            </div>
+            <div class="checkin-section" id="checkinSection"></div>
+            <div class="progress-section">
+                <div class="progress-row">
+                    <span class="progress-label">本周进度</span>
+                    <span class="progress-value" id="weekProgress">0/7 天</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" id="weekBar" style="width: 0%"></div></div>
+                <div class="progress-row">
+                    <span class="progress-label">本月进度</span>
+                    <span class="progress-value" id="monthProgress">0/0 天</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" id="monthBar" style="width: 0%"></div></div>
+            </div>
+        </div>
+
+        <!-- 统计页 -->
+        <div id="statsPage" class="page">
+            <div class="stats-header">
+                <div class="stats-title">本周概览</div>
+            </div>
+            <div class="week-grid" id="weekGrid"></div>
+            <div class="stat-card">
+                <div class="stat-row">
+                    <span class="stat-label">累计打卡</span>
+                    <span class="stat-value" id="totalCheckins">0</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-row">
+                    <span class="stat-label">最长连续</span>
+                    <span class="stat-value" id="maxStreak">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 我的页面 -->
+        <div id="profilePage" class="page">
+            <div class="profile-header">
+                <div class="profile-avatar" id="profileAvatar">律</div>
+                <div class="profile-name" id="profileName">用户</div>
+                <div class="profile-level">自律修行者</div>
+            </div>
+            <div class="stat-card">
+                <div class="menu-item" onclick="showToast('功能开发中')">
+                    <span class="menu-label">修改昵称</span>
+                    <span class="menu-arrow">›</span>
+                </div>
+                <div class="menu-item" onclick="showToast('功能开发中')">
+                    <span class="menu-label">添加习惯</span>
+                    <span class="menu-arrow">›</span>
+                </div>
+                <div class="menu-item" onclick="handleLogout()">
+                    <span class="menu-label" style="color: var(--danger);">退出登录</span>
+                    <span class="menu-arrow">›</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部导航 -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchPage('home')">
+                <div class="nav-icon">🏠</div>
+                <span>首页</span>
+            </div>
+            <div class="nav-item" onclick="switchPage('stats')">
+                <div class="nav-icon">📊</div>
+                <span>统计</span>
+            </div>
+            <div class="nav-item" onclick="switchPage('profile')">
+                <div class="nav-icon">👤</div>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let isRegisterMode = false;
+        let currentUser = null;
+        let habits = [];
+        let todayCheckins = [];
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('lvji_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showApp();
+            }
+            updateDateDisplay();
+        });
+
+        function updateDateDisplay() {
+            const now = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('dateDisplay').textContent = now.toLocaleDateString('zh-CN', options);
+        }
+
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('nicknameGroup').classList.toggle('hidden', !isRegisterMode);
+            document.getElementById('authBtn').textContent = isRegisterMode ? '注册' : '登录';
+            document.getElementById('authError').classList.add('hidden');
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('authError');
+            el.textContent = msg;
+            el.classList.remove('hidden');
+        }
+
+        async function handleAuth() {
+            const username = document.getElementById('authUsername').value.trim();
+            const password = document.getElementById('authPassword').value;
+            const nickname = document.getElementById('authNickname').value.trim();
+
+            if (!username || !password) {
+                showError('请填写用户名和密码');
+                return;
+            }
+
+            const endpoint = isRegisterMode ? '/api/register' : '/api/login';
+            const body = isRegisterMode 
+                ? { username, password, nickname: nickname || username }
+                : { username, password };
+
+            try {
+                const res = await fetch(API_BASE + endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showError(data.error || '操作失败');
+                    return;
+                }
+
+                currentUser = { userId: data.userId, username: data.username, nickname: data.nickname };
+                localStorage.setItem('lvji_user', JSON.stringify(currentUser));
+                showApp();
+            } catch (err) {
+                showError('网络错误，请检查后端服务');
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('lvji_user');
+            currentUser = null;
+            document.getElementById('authPage').classList.remove('hidden');
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('authUsername').value = '';
+            document.getElementById('authPassword').value = '';
+            isRegisterMode = false;
+            document.getElementById('nicknameGroup').classList.add('hidden');
+            document.getElementById('authBtn').textContent = '登录';
+        }
+
+        async function showApp() {
+            document.getElementById('authPage').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            document.getElementById('profileName').textContent = currentUser.nickname || currentUser.username;
+            document.getElementById('profileAvatar').textContent = (currentUser.nickname || currentUser.username)[0];
+            
+            await loadData();
+        }
+
+        async function loadData() {
+            try {
+                const [habitsRes, checkinsRes, streakRes, weekRes, monthRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/habits/${currentUser.userId}`),
+                    fetch(`${API_BASE}/api/checkins/${currentUser.userId}/today`),
+                    fetch(`${API_BASE}/api/checkins/${currentUser.userId}/streak`),
+                    fetch(`${API_BASE}/api/checkins/${currentUser.userId}/week`),
+                    fetch(`${API_BASE}/api/checkins/${currentUser.userId}/month`)
+                ]);
+
+                habits = await habitsRes.json();
+                todayCheckins = await checkinsRes.json();
+                const streakData = await streakRes.json();
+                const weekData = await weekRes.json();
+                const monthData = await monthRes.json();
+
+                renderCheckinCards();
+                document.getElementById('streakNumber').textContent = streakData.streak;
+                
+                const weekDone = weekData.filter(d => d.done).length;
+                document.getElementById('weekProgress').textContent = `${weekDone}/7 天`;
+                document.getElementById('weekBar').style.width = `${(weekDone / 7) * 100}%`;
+                
+                document.getElementById('monthProgress').textContent = `${monthData.completedDays}/${monthData.totalDays} 天`;
+                document.getElementById('monthBar').style.width = `${(monthData.completedDays / monthData.totalDays) * 100}%`;
+
+                renderWeekGrid(weekData);
+            } catch (err) {
+                console.error('加载数据失败:', err);
+                showToast('加载数据失败');
+            }
+        }
+
+        function renderCheckinCards() {
+            const container = document.getElementById('checkinSection');
+            container.innerHTML = '';
+
+            habits.forEach(habit => {
+                const checkin = todayCheckins.find(c => c.habit_id === habit.id);
+                const isCompleted = checkin && checkin.completed === 1;
+
+                const card = document.createElement('div');
+                card.className = `checkin-card ${isCompleted ? 'completed' : ''}`;
+                card.onclick = () => handleCheckin(habit.id, checkin?.id);
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="card-info">
+                            <div class="card-title">${habit.name}</div>
+                            <div class="card-category">${habit.category}</div>
+                        </div>
+                        <div class="card-status">
+                            <span class="checkmark">${isCompleted ? '✓' : ''}</span>
+                        </div>
+                    </div>
+                    <div class="card-target">${habit.target_value} <span>${habit.target_unit}</span></div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function handleCheckin(habitId, checkinId) {
+            try {
+                if (checkinId) {
+                    await fetch(`${API_BASE}/api/checkins/${checkinId}`, { method: 'DELETE' });
+                } else {
+                    await fetch(`${API_BASE}/api/checkins`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: currentUser.userId, habitId, value: 1 })
+                    });
+                }
+                await loadData();
+            } catch (err) {
+                showToast('操作失败');
+            }
+        }
+
+        function renderWeekGrid(weekData) {
+            const grid = document.getElementById('weekGrid');
+            grid.innerHTML = '';
+            
+            weekData.forEach(day => {
+                const cell = document.createElement('div');
+                let className = 'day-cell';
+                if (day.done) className += ' done';
+                else if (day.completed > 0) className += ' partial';
+                
+                cell.className = className;
+                cell.innerHTML = `<span class="day-name">${day.day}</span>`;
+                grid.appendChild(cell);
+            });
+        }
+
+        function switchPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(`${page}Page`).classList.add('active');
+            document.querySelectorAll('.nav-item')[['home', 'stats', 'profile'].indexOf(page)].classList.add('active');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+    </script>
+</body>
+</html>

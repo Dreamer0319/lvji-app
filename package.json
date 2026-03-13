@@ -1,0 +1,19 @@
+{
+  "name": "lvji-app",
+  "version": "1.0.0",
+  "description": "律己 App - 自律，是男人最顶级的修行",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "sql.js": "^1.10.3",
+    "bcryptjs": "^2.4.3",
+    "uuid": "^9.0.1"
+  }
+}

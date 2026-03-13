@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  lvji:
+    build: .
+    ports:
+      - "8080:8080"
+      - "3001:3001"
+    volumes:
+      - ./data:/app/backend/data
+    restart: unless-stopped
